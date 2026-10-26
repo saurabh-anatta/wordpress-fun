@@ -24,3 +24,8 @@ dist/
 Thumbs.db
 .idea/
 .vscode/
+
+# Local preview
+wp-content/db.php
+wp-content/database/
+wp-content/plugins/sqlite-database-integration/
