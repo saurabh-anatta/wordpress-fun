@@ -22,7 +22,17 @@ fi
 
 if [ ! -f wp-config.php ]; then
   $WP config create --dbname=wp --dbuser=wp --dbpass=wp --skip-check \
-    --extra-php <<<"define( 'DB_DIR', __DIR__ . '/wp-content/database/' );"
+    --extra-php <<'PHP'
+define( 'DB_DIR', __DIR__ . '/wp-content/database/' );
+/* Local preview: use whatever host/scheme the request came in on (sandbox proxy, localhost, LAN). */
+if ( ! empty( $_SERVER['HTTP_HOST'] ) ) {
+	$hm_host  = ! empty( $_SERVER['HTTP_X_FORWARDED_HOST'] ) ? $_SERVER['HTTP_X_FORWARDED_HOST'] : $_SERVER['HTTP_HOST'];
+	$hm_https = ! empty( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && 'https' === $_SERVER['HTTP_X_FORWARDED_PROTO'];
+	if ( $hm_https ) { $_SERVER['HTTPS'] = 'on'; }
+	define( 'WP_HOME', ( $hm_https ? 'https://' : 'http://' ) . $hm_host );
+	define( 'WP_SITEURL', WP_HOME );
+}
+PHP
 fi
 
 if ! $WP core is-installed 2>/dev/null; then
@@ -31,6 +41,10 @@ if ! $WP core is-installed 2>/dev/null; then
   $WP option update blogdescription "Cardiovascular health is everything health"
 fi
 $WP theme activate humann
+
+# Local preview only: root-relative URLs so assets load through any proxy/host (gitignored)
+mkdir -p wp-content/mu-plugins
+cp bin/local-relative-urls.php wp-content/mu-plugins/local-relative-urls.php
 
 echo "Serving $URL  (admin: $URL/wp-admin  user: admin / admin123)"
 exec php -S 0.0.0.0:"$PORT" router.php

@@ -29,3 +29,4 @@ Thumbs.db
 wp-content/db.php
 wp-content/database/
 wp-content/plugins/sqlite-database-integration/
+wp-content/mu-plugins/local-relative-urls.php
