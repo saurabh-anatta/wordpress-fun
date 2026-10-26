@@ -1,0 +1,456 @@
+/*
+Theme Name: Humann
+Theme URI: https://github.com/saurabh-anatta/wordpress-fun
+Author: wordpress-fun
+Description: Scroll-story home page built from the "Latest Design / Vertical POC" Figma file: cardiovascular health is everything health.
+Requires at least: 6.5
+Tested up to: 7.1
+Requires PHP: 7.4
+Version: 1.0.0
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: humann
+*/
+
+/* =========================================================
+   Tokens (values from Figma)
+   ========================================================= */
+:root {
+	--hm-red: #BC0F0F;
+	--hm-ink: #191C1C;
+	--hm-charcoal: #414141;
+	--hm-grey: #767676;
+	--hm-silver: #A0A0A0;
+	--hm-mist: #F5F5F5;
+	--hm-cream: #F6F3ED;
+	--hm-serif: var(--wp--preset--font-family--serif);
+	--hm-grotesk: var(--wp--preset--font-family--grotesk);
+	--hm-label: var(--wp--preset--font-family--label);
+	--hm-px: calc(100vw / 1440); /* 1 design px at the 1440 frame */
+}
+
+html { scroll-behavior: smooth; }
+body { margin: 0; background: #000; overflow-x: clip; }
+.hm-main, .hm-main > * { margin: 0 !important; }
+.hm-main img { display: block; max-width: none; }
+.hm-main p, .hm-main h1, .hm-main h2, .hm-main h3, .hm-main ul, .hm-main ol { margin: 0; }
+.hm-header-part { margin: 0 !important; }
+
+/* =========================================================
+   Type
+   ========================================================= */
+.hm-h, .hm-h2 {
+	font-family: var(--hm-serif);
+	font-weight: 400;
+	letter-spacing: -1px;
+}
+.hm-h  { font-size: clamp(2rem, 3.334vw, 3rem); line-height: 1.0834; }   /* 48 / 52 */
+.hm-h2 { font-size: clamp(1.4rem, 2.223vw, 2rem); line-height: 1.25; }   /* 32 / 40 */
+.hm-mix b, .hm-g {
+	font-family: var(--hm-grotesk);
+	font-weight: 700;
+	letter-spacing: 0;
+}
+.hm-lead { font-family: var(--hm-grotesk); font-weight: 700; font-size: 1.25rem; line-height: 1.2; }  /* 20 / 24 */
+.hm-kicker { font-family: var(--hm-grotesk); font-weight: 700; font-size: 1.25rem; line-height: 1.2; margin-bottom: 1rem !important; }
+.hm-kicker--sm { font-size: 1.125rem; line-height: 1.334; }
+.hm-body { font-family: var(--hm-grotesk); font-weight: 500; font-size: 1.125rem; line-height: 1.334; letter-spacing: -0.5px; }
+.hm-label {
+	font-family: var(--hm-label);
+	font-weight: 400;
+	font-size: 0.875rem;
+	line-height: 1.15;
+	letter-spacing: 0.75px;
+	text-transform: uppercase;
+}
+.hm-c-white { color: #fff; }
+.hm-c-mist { color: var(--hm-mist); }
+.hm-c-charcoal { color: var(--hm-charcoal); }
+.hm-c-grey { color: var(--hm-grey); }
+.hm-c-silver { color: var(--hm-silver); }
+.hm-center { text-align: center; margin-inline: auto; }
+
+/* Fade-up reveal (JS adds .is-in) */
+.hm-reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.9s ease, transform 0.9s cubic-bezier(.2,.7,.2,1); }
+.hm-reveal.is-in { opacity: 1; transform: none; }
+.no-js .hm-reveal { opacity: 1; transform: none; }
+
+/* =========================================================
+   Sticky pill nav
+   ========================================================= */
+.hm-nav { position: fixed; inset: 21px 0 auto; z-index: 100; display: flex; justify-content: center; pointer-events: none; }
+.hm-nav__pills {
+	pointer-events: auto;
+	display: flex;
+	gap: 4px;
+	padding: 6px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.4);
+	-webkit-backdrop-filter: blur(10px);
+	backdrop-filter: blur(10px);
+	max-width: calc(100vw - 24px);
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+.hm-nav__pills::-webkit-scrollbar { display: none; }
+.hm-pill {
+	flex: none;
+	padding: 8px 18px;
+	border-radius: 999px;
+	font: 600 12px/15px var(--hm-label);
+	letter-spacing: 1.5px;
+	text-transform: uppercase;
+	text-decoration: none;
+	color: var(--hm-ink);
+	transition: background-color 0.35s ease, color 0.35s ease;
+}
+.hm-pill:hover { background: rgba(255, 255, 255, 0.5); }
+.hm-pill.is-active { background: var(--hm-red); color: var(--hm-cream); }
+.hm-pill:focus-visible, .hm-pause:focus-visible, .hm-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+.hm-pause {
+	pointer-events: auto;
+	position: fixed; top: 22px; right: 26px;
+	width: 28px; height: 30px;
+	display: flex; gap: 7px; align-items: center; justify-content: center;
+	background: none; border: 0; cursor: pointer; padding: 0;
+	mix-blend-mode: difference;
+}
+.hm-pause span { width: 2px; height: 17px; background: #fff; border-radius: 1px; transition: transform 0.3s; }
+.hm-pause[aria-pressed="true"] span:first-child { transform: translateX(4px) rotate(45deg); }
+.hm-pause[aria-pressed="true"] span:last-child { transform: translateX(-5px) rotate(-45deg); }
+
+/* =========================================================
+   1. Hero
+   ========================================================= */
+.hm-hero {
+	position: relative;
+	min-height: max(100svh, 600px);
+	display: grid;
+	place-items: center;
+	overflow: hidden;
+	background: #AF0D0E;
+	color: #fff;
+}
+.hm-hero__bg {
+	position: absolute; inset: -4%;
+	background-size: cover; background-position: center;
+	animation: hm-breathe 18s ease-in-out infinite alternate;
+}
+@keyframes hm-breathe { from { transform: scale(1) translate3d(0,0,0); } to { transform: scale(1.08) translate3d(-1.5%, 1%, 0); } }
+.hm-hero__center { position: relative; text-align: center; padding-top: 30px; }
+.hm-hero__logo img { width: min(435px, 72vw); height: auto; margin: 0 auto; }
+.hm-hero__tag { margin-top: 26px !important; font-size: 1.25rem; line-height: 1.2; letter-spacing: -0.5px; font-family: var(--hm-serif); color: var(--hm-mist); }
+.hm-hero__discover {
+	position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+	display: flex; flex-direction: column; align-items: center; gap: 1px;
+	color: #fff; text-decoration: none;
+}
+.hm-chevrons { position: relative; width: 24px; height: 36px; }
+.hm-chevrons i {
+	position: absolute; left: 6px; width: 10px; height: 10px;
+	border-right: 2px solid #fff; border-bottom: 2px solid #fff;
+	transform: rotate(45deg);
+	animation: hm-chev 1.8s infinite;
+}
+.hm-chevrons i:nth-child(1) { top: 4px; }
+.hm-chevrons i:nth-child(2) { top: 10px; animation-delay: 0.2s; }
+.hm-chevrons i:nth-child(3) { top: 16px; animation-delay: 0.4s; }
+@keyframes hm-chev { 0%, 100% { opacity: 0.15; } 40% { opacity: 1; } }
+
+/* =========================================================
+   2. How it started – pinned horizontal scroll
+   --u = one design px (frame is 900 tall)
+   ========================================================= */
+.hm-hscroll { position: relative; background: #fff; --u: calc(100svh / 900); }
+.hm-hscroll__sticky { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.hm-hscroll__track { position: relative; height: 100%; width: calc(var(--tw) * var(--u)); will-change: transform; overflow: hidden; }
+.hm-abs {
+	position: absolute;
+	left: calc(var(--x) * var(--u));
+	top: calc(var(--y) * var(--u));
+	width: calc(var(--w) * var(--u));
+}
+img.hm-abs, .hm-trace { height: calc(var(--h) * var(--u)); }
+.hm-abs > img, .hm-trace img { width: 100%; height: 100%; }
+.hm-story__photo { object-fit: cover; }
+.hm-hscroll .hm-h { font-size: calc(48 * var(--u)); }
+.hm-hscroll .hm-lead, .hm-hscroll .hm-kicker { font-size: calc(20 * var(--u)); }
+.hm-hscroll .hm-kicker--sm { font-size: calc(18 * var(--u)); }
+.hm-story__text .hm-lead { margin-top: calc(26 * var(--u)) !important; }
+.hm-trace { clip-path: inset(0 calc((1 - var(--t, 0)) * 100%) 0 0); }
+.hm-pulse-dot { animation: hm-dot 1.4s ease-in-out infinite; border-radius: 50%; }
+@keyframes hm-dot { 50% { transform: scale(1.8); opacity: 0.6; } }
+
+/* =========================================================
+   3. Nitric oxide – pinned red stage (--p 0→1 from JS)
+   ========================================================= */
+.hm-no { position: relative; height: 320svh; background: var(--hm-red); --p: 0; }
+.hm-no__sticky { position: sticky; top: 0; height: 100svh; overflow: hidden; perspective: 1400px; }
+.hm-no__stage {
+	--q: clamp(0, calc((var(--p) - 0.28) / 0.32), 1);   /* screen exit */
+	--r: clamp(0, calc((var(--p) - 0.5) / 0.25), 1);    /* panel B entry */
+	position: relative; height: 100%;
+	display: flex; flex-direction: column; align-items: center; justify-content: center;
+	gap: clamp(24px, 4.9svh, 44px);
+	padding: 90px 24px 40px;
+	box-sizing: border-box;
+}
+.hm-no__a { max-width: 1034px; text-align: center; opacity: calc(1 - var(--q) * 1.6); transform: translateY(calc(var(--q) * -60px)); }
+.hm-no__screen {
+	width: min(733px, 80vw, calc(47svh * 733 / 445));
+	height: auto;
+	transform-origin: 50% 60%;
+	transform: translate3d(calc(var(--q) * 32vw), calc(var(--q) * -8svh), 0) rotateY(calc(var(--q) * -38deg)) scale(calc(1 - var(--q) * 0.35));
+	opacity: calc(1 - var(--r) * 1.4);
+	box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+}
+.hm-no__b {
+	position: absolute; inset: 0;
+	display: grid; grid-template-columns: 473fr 581fr; align-items: center;
+	gap: calc(190 * var(--hm-px));
+	padding: 80px calc(85 * var(--hm-px)) 40px;
+	box-sizing: border-box;
+	opacity: var(--r);
+	pointer-events: none;
+}
+.hm-no__copy { display: grid; gap: calc(22 * var(--hm-px)); transform: translateX(calc((1 - var(--r)) * -40px)); }
+.hm-no__art { position: relative; aspect-ratio: 581 / 409; transform: translateX(calc((1 - var(--r)) * 25vw)) rotate(calc((1 - var(--r)) * 8deg)); }
+.hm-no__art img { position: absolute; height: auto; }
+.hm-no__molecule { inset: 0; width: 100%; }
+.hm-no__pin { left: 68.8%; top: 84.8%; width: 5.7%; }
+.hm-no__shadow--1 { left: 8.3%; top: 97%; width: 54.7%; }
+.hm-no__shadow--2 { left: 41.3%; top: 92.7%; width: 45.8%; }
+
+/* =========================================================
+   4. The science – blood vessels
+   ========================================================= */
+.hm-sci { background: #000; position: relative; }
+.hm-slice { position: relative; height: max(calc(var(--h) * var(--hm-px)), 60svh); overflow: hidden; }
+.hm-slice img {
+	position: absolute; top: 0; height: 100%;
+	left: calc(var(--x) / 1440 * 100%); width: calc(var(--w) / 1440 * 100%);
+	object-fit: cover;
+	transform: scale(1.06); transition: transform 1.6s ease;
+}
+.hm-slice.is-in img { transform: scale(1); }
+.hm-sci__caption-wrap { position: relative; }
+.hm-sci__caption {
+	position: sticky; top: 42svh; z-index: 2;
+	height: 0; overflow: visible;
+	max-width: 801px; margin: 0 auto !important; padding-inline: 24px;
+	text-align: center;
+	text-shadow: 0 2px 30px rgba(0, 0, 0, 0.6);
+	transform: translateY(calc(600 * var(--hm-px)));
+}
+.hm-sci__end {
+	position: relative; z-index: 2;
+	margin-top: calc(-578 * var(--hm-px)) !important;
+	padding: 0 24px calc(140 * var(--hm-px));
+	text-align: center;
+	scroll-margin-top: 120px;
+}
+.hm-sci__end .hm-h { max-width: 1063px; margin: 0 auto; }
+.hm-sci__rule { margin-top: 20px !important; font: 700 1.25rem/1.2 var(--hm-grotesk); color: #fff; }
+
+/* =========================================================
+   5. Timeline
+   ========================================================= */
+.hm-tl { position: relative; background: #000; color: #fff; padding: 120px 24px 160px; --tl: 0; }
+.hm-tl__line { position: absolute; left: 50%; top: 0; bottom: 470px; width: 1px; background: rgba(255, 255, 255, 0.2); }
+.hm-tl__line span { position: absolute; inset: 0; background: #fff; transform-origin: top; transform: scaleY(var(--tl)); }
+.hm-tl__list { list-style: none; padding: 0; margin: 0 auto !important; max-width: 1200px; }
+.hm-tl__item { position: relative; display: grid; grid-template-columns: 1fr 1fr; column-gap: 53px; padding-bottom: 120px; }
+.hm-tl__item:last-child { padding-bottom: 0; }
+.hm-tl__meta { text-align: right; padding-right: 0; }
+.hm-tl__year { font: 700 clamp(2rem, 3.334vw, 3rem)/1.0834 var(--hm-grotesk); }
+.hm-tl__meta .hm-label { margin-top: 13px !important; color: var(--hm-mist); }
+.hm-tl__dot { position: absolute; left: calc(50% - 5px); top: 19px; width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 6px rgba(255,255,255,0.12); }
+.hm-tl__body { max-width: 432px; display: grid; gap: 24px; }
+.hm-tl__body img { width: 100%; height: auto; aspect-ratio: 432 / 243; object-fit: cover; border-radius: 8px; }
+.hm-tl__body p { font: 500 1rem/1.25 var(--hm-grotesk); }
+
+/* =========================================================
+   Shared red sections (molecule + products)
+   ========================================================= */
+.hm-red { position: relative; overflow: hidden; background: var(--hm-red); color: #fff; padding: calc(120 * var(--hm-px)) 24px; }
+.hm-molecule { padding-bottom: calc(170 * var(--hm-px)); }
+.hm-red__vessels { position: absolute; top: -50px; left: -36.2%; width: 179.3%; height: auto; pointer-events: none; }
+.hm-red__vessels--left { left: -116.7%; top: -26px; }
+.hm-drift { animation: hm-drift 22s ease-in-out infinite alternate; }
+@keyframes hm-drift { to { transform: translate3d(4%, 2%, 0); } }
+.hm-split {
+	position: relative;
+	display: grid; grid-template-columns: 530fr 562fr; align-items: center;
+	column-gap: calc(100 * var(--hm-px));
+	max-width: 1200px; margin: 0 auto;
+}
+.hm-split--reverse { grid-template-columns: 562fr 530fr; column-gap: calc(140 * var(--hm-px)); }
+.hm-split__media img { width: 100%; height: auto; aspect-ratio: 530 / 795; object-fit: cover; }
+.hm-split__copy { display: grid; gap: 1.5rem; }
+.hm-inline-molecule { display: inline-block !important; height: 1.5em; width: auto; vertical-align: middle; margin: -0.35em 0.05em; }
+
+.hm-products .hm-split__copy { gap: 12px; }
+.hm-products .hm-h { margin-bottom: 20px !important; }
+.hm-pills { display: flex; flex-wrap: wrap; gap: 12px; list-style: none; padding: 0; }
+.hm-pills li {
+	display: inline-flex; align-items: center; gap: 4px;
+	padding: 4px 16px; border-radius: 20px;
+	background: rgba(255, 255, 255, 0.1);
+	font: 700 1rem/1.25 var(--hm-grotesk); color: #fff;
+}
+.hm-pills span { width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; }
+
+/* =========================================================
+   6. The proof
+   ========================================================= */
+.hm-proof {
+	position: relative;
+	background-color: #E6E6E6;
+	background-size: cover; background-position: center top;
+	padding: calc(212 * var(--hm-px)) 24px calc(170 * var(--hm-px));
+	overflow: hidden;
+}
+.hm-proof__intro { text-align: center; }
+.hm-proof__intro .hm-h { max-width: 617px; margin: 0 auto; }
+.hm-proof__product { width: min(515px, 80vw); margin: calc(32 * var(--hm-px)) auto 0; will-change: transform; }
+.hm-proof__product img { width: 100%; height: auto; }
+.hm-proof__board { margin-top: calc(6 * var(--hm-px)); }
+.hm-proof__board .hm-center { max-width: 902px; display: grid; gap: 24px; }
+.hm-proof__board .hm-lead { font-weight: 500; }
+
+.hm-carousel { margin: 48px -24px 0; overflow: hidden; }
+.hm-carousel__track { display: flex; gap: 24px; width: max-content; list-style: none; padding: 0; margin: 0; animation: hm-marquee 48s linear infinite; }
+.hm-carousel:hover .hm-carousel__track { animation-play-state: paused; }
+@keyframes hm-marquee { to { transform: translateX(calc(-50% - 12px)); } }
+.hm-card { width: 280px; flex: none; }
+.hm-card img { width: 280px; height: 347px; object-fit: cover; border-radius: 16px; }
+.hm-card__name { margin-top: 16px !important; font: 700 1.125rem/1.334 var(--hm-grotesk); color: var(--hm-charcoal); }
+.hm-card__role { margin-top: 4px !important; font: 500 0.875rem/1.15 var(--hm-grotesk); color: var(--hm-grey); }
+
+.hm-proof__clinical { margin-top: calc(210 * var(--hm-px)); }
+.hm-proof__clinical .hm-center { max-width: 980px; display: grid; gap: 24px; }
+.hm-stats {
+	display: grid; grid-template-columns: repeat(3, minmax(0, 336px)); justify-content: center;
+	column-gap: 96px; margin-top: 64px;
+	text-align: center;
+}
+.hm-stat { position: relative; display: grid; gap: 16px; align-content: start; }
+.hm-stat + .hm-stat::before { content: ""; position: absolute; left: -48px; top: 0; height: 140px; width: 1px; background: rgba(65, 65, 65, 0.25); }
+.hm-stat__num { font: 700 3.75rem/1 var(--hm-grotesk); color: var(--hm-red); }
+.hm-stat__logo { display: grid; justify-items: center; gap: 16px; }
+.hm-stat__logo img { width: 222px; height: auto; margin-top: 8px; }
+.hm-stat__logo::after { content: ""; width: 64px; height: 1px; background: var(--hm-charcoal); }
+.hm-stat__label { font: 700 1.125rem/1.334 var(--hm-grotesk); color: var(--hm-charcoal); }
+.hm-stat__desc { font: 500 0.875rem/1.15 var(--hm-grotesk); color: var(--hm-grey); }
+
+/* =========================================================
+   7. The people
+   ========================================================= */
+.hm-people { background: #000; color: #fff; }
+.hm-stadium {
+	position: relative;
+	height: max(calc(901 * var(--hm-px)), 70svh);
+	background-size: cover; background-position: center;
+	display: flex; justify-content: center; padding-top: 88px; box-sizing: border-box;
+}
+.hm-stadium::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 84%, #000 100%), rgba(0, 0, 0, 0.2); }
+.hm-stadium__logo { position: relative; width: min(313px, 70vw); height: auto; }
+.hm-people__body { position: relative; margin-top: -60px !important; padding: 0 24px; }
+.hm-people__intro { max-width: 950px; display: flex; flex-direction: column; align-items: center; gap: 38px; }
+.hm-vline { display: block; width: 1px; height: 277px; background: linear-gradient(#fff, rgba(255,255,255,0.2)); transform-origin: top; transform: scaleY(var(--g, 0)); transition: transform 1.4s ease; }
+.hm-vline.is-in { --g: 1; }
+.hm-people__crowd { position: relative; margin-top: 26px; text-align: center; }
+.hm-branches { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: min(1051px, 90vw); height: auto; opacity: 0.9; }
+.hm-branches.is-in { transform: translateX(-50%); }
+.hm-people__crowd > .hm-h2 { position: relative; max-width: 1054px; padding-top: calc(512 * var(--hm-px) + 80px); }
+.hm-grid-photos { margin: 89px calc(-24px - 2.3vw) 0; }
+.hm-grid-photos img { width: 104.6vw; height: auto; }
+
+/* =========================================================
+   8. What's next
+   ========================================================= */
+.hm-next { background: #000; padding: calc(248 * var(--hm-px)) 0 45px; }
+.hm-lifestyle { position: relative; }
+.hm-glass {
+	position: relative; z-index: 2;
+	width: min(909px, calc(100% - 48px)); margin: 0 auto; box-sizing: border-box;
+	padding: 48px 32px; border-radius: 16px;
+	background: rgba(255, 255, 255, 0.1);
+	-webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+	text-align: center;
+	display: grid; gap: 24px;
+}
+.hm-glass__sub { color: rgba(245, 245, 245, 0.7); font-weight: 700; }
+.hm-lifestyle__img { width: calc(1360 / 1440 * 100%); height: auto; aspect-ratio: 1360 / 689; object-fit: cover; margin: -55px auto 0; position: relative; z-index: 1; }
+.hm-products { padding-bottom: calc(212 * var(--hm-px)); }
+
+.hm-cta {
+	position: relative;
+	min-height: max(calc(906 * var(--hm-px)), 70svh);
+	display: grid; place-items: center;
+	background-color: var(--hm-red);
+	background-size: cover, cover; background-position: center;
+	padding: 80px 24px; box-sizing: border-box;
+}
+.hm-cta__inner { display: flex; flex-direction: column; align-items: center; gap: 48px; text-align: center; max-width: 909px; }
+.hm-btn {
+	display: inline-block;
+	padding: 16px 28px; border-radius: 28px;
+	background: var(--hm-mist); color: var(--hm-charcoal);
+	font: 400 1rem/1 var(--hm-label); letter-spacing: 0.75px; text-transform: uppercase;
+	text-decoration: none;
+	transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.hm-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
+
+/* Footer + plain pages */
+.hm-footer { background: #000; color: var(--hm-grey); padding: 28px 24px; text-align: center; font: 500 0.75rem/1.4 var(--hm-grotesk); margin: 0 !important; }
+.hm-footer p { max-width: 900px; margin: 0 auto; }
+.hm-page { background: #fff; padding: 48px 24px 96px; }
+.hm-page__brand a { color: var(--hm-red); text-decoration: none; font: 700 1.25rem var(--hm-grotesk); }
+
+/* Pause / reduced motion */
+.hm-paused *, .hm-paused *::before, .hm-paused *::after { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) {
+	html { scroll-behavior: auto; }
+	*, *::before, *::after { animation: none !important; transition: none !important; }
+	.hm-reveal { opacity: 1; transform: none; }
+}
+
+/* =========================================================
+   Tablet / mobile
+   ========================================================= */
+@media (max-width: 900px) {
+	.hm-split, .hm-split--reverse { grid-template-columns: 1fr; row-gap: 40px; }
+	.hm-split--reverse .hm-split__media { order: -1; }
+	.hm-red { padding-block: 96px; }
+	.hm-stats { grid-template-columns: 1fr; row-gap: 48px; }
+	.hm-stat + .hm-stat::before { left: 50%; top: -24px; width: 64px; height: 1px; transform: translateX(-50%); }
+	.hm-tl__item { grid-template-columns: 1fr; padding-left: 32px; row-gap: 20px; }
+	.hm-tl__meta { text-align: left; }
+	.hm-tl__line { left: 24px; }
+	.hm-tl__dot { left: -13px; }
+	.hm-tl__list { padding-left: 4px; }
+	.hm-no__b { grid-template-columns: 1fr; align-content: center; gap: 32px; padding-inline: 24px; }
+	.hm-no__art { width: 80%; justify-self: center; }
+}
+
+@media (max-width: 767px) {
+	.hm-nav { top: 12px; }
+	.hm-pause { display: none; }
+	/* Horizontal story becomes a vertical story on phones */
+	.hm-hscroll { height: auto !important; }
+	.hm-hscroll__sticky { position: static; height: auto; overflow: visible; }
+	.hm-hscroll__track { width: auto; transform: none !important; display: flex; flex-direction: column; gap: 56px; padding: 96px 24px 72px; }
+	.hm-abs { position: static; width: auto; }
+	.hm-hscroll .hm-deco { display: none; }
+	.hm-story__photo, .hm-story__runner { width: 100%; height: auto; aspect-ratio: 519 / 741; }
+	.hm-story__runner { aspect-ratio: 996 / 925; object-fit: contain; }
+	.hm-hscroll .hm-h { font-size: 2rem; }
+	.hm-hscroll .hm-lead, .hm-hscroll .hm-kicker { font-size: 1.125rem; }
+	.hm-story__text .hm-lead { max-width: none !important; margin-top: 16px !important; }
+	.hm-sci__caption { transform: translateY(20svh); }
+	.hm-sci__end { margin-top: 0 !important; padding-top: 72px; }
+	.hm-grid-photos img { width: 180vw; margin-left: -38vw; }
+}

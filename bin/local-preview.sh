@@ -26,11 +26,11 @@ if [ ! -f wp-config.php ]; then
 fi
 
 if ! $WP core is-installed 2>/dev/null; then
-  $WP core install --url="$URL" --title="Hearth Studio" --admin_user=admin \
+  $WP core install --url="$URL" --title="Humann" --admin_user=admin \
     --admin_password=admin123 --admin_email=admin@example.com --skip-email
-  $WP option update blogdescription "Interior design studio"
+  $WP option update blogdescription "Cardiovascular health is everything health"
 fi
-$WP theme activate hearth
+$WP theme activate humann
 
 echo "Serving $URL  (admin: $URL/wp-admin  user: admin / admin123)"
 exec php -S 0.0.0.0:"$PORT" router.php
